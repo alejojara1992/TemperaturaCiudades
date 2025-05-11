@@ -1,4 +1,3 @@
-
 import entidades.RegistroTemperatura;
 import servicios.ServicioTemperatura;
 
@@ -19,13 +18,11 @@ import org.jfree.data.category.DefaultCategoryDataset;
 
 public class FrmTemperaturas extends JFrame {
 
-    private DateChooserCombo dccDesde, dccHasta, dccEspecifica;
-    private JComboBox<String> cmbCiudadEstadistica;
-    private DateChooserCombo dccCiudadFecha;
-    private JButton btnBuscarCiudadFecha;
+    private DateChooserCombo fechaDesde, fechaHasta, fechaExtremos;
     private JPanel pnlGrafica, pnlEstadisticas;
-    private JLabel lblResultadoCiudadFecha;
+    private JTextArea txtResultadoCiudadFecha;
     private List<RegistroTemperatura> datos;
+    private JPanel panelGraficaTop;
 
     public FrmTemperaturas() {
         setTitle("Temperaturas por Ciudad");
@@ -33,61 +30,58 @@ public class FrmTemperaturas extends JFrame {
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
-        JPanel top = new JPanel();
-        top.setLayout(new FlowLayout());
-        dccDesde = new DateChooserCombo();
-        dccHasta = new DateChooserCombo();
-        dccEspecifica = new DateChooserCombo();
-        JButton btnGraficar = new JButton("Graficar promedio");
-        JButton btnEstadisticas = new JButton("Mostrar extremos");
-
-        top.add(new JLabel("Desde:"));
-        top.add(dccDesde);
-        top.add(new JLabel("Hasta:"));
-        top.add(dccHasta);
-        top.add(btnGraficar);
-
-        top.add(new JLabel("Fecha específica:"));
-        top.add(dccEspecifica);
-        top.add(btnEstadisticas);
+        fechaDesde = new DateChooserCombo();
+        fechaHasta = new DateChooserCombo();
+        fechaExtremos = new DateChooserCombo();
 
         pnlGrafica = new JPanel(new BorderLayout());
-        pnlEstadisticas = new JPanel();
-        pnlEstadisticas.setLayout(new BoxLayout(pnlEstadisticas, BoxLayout.Y_AXIS));
+        panelGraficaTop = new JPanel(new FlowLayout());
+        panelGraficaTop.add(new JLabel("Desde:"));
+        panelGraficaTop.add(fechaDesde);
+        panelGraficaTop.add(new JLabel("Hasta:"));
+        panelGraficaTop.add(fechaHasta);
+        JButton btnGraficar = new JButton("Graficar promedio");
+        panelGraficaTop.add(btnGraficar);
+        pnlGrafica.add(panelGraficaTop, BorderLayout.NORTH);
 
-        cmbCiudadEstadistica = new JComboBox<>();
-        btnBuscarCiudadFecha = new JButton("Ver promedio de ciudad en periodo");
-        lblResultadoCiudadFecha = new JLabel("", SwingConstants.CENTER);
-        lblResultadoCiudadFecha.setAlignmentX(Component.CENTER_ALIGNMENT);
+        pnlEstadisticas = new JPanel(new BorderLayout());
+        JPanel panelEstadisticasTop = new JPanel(new FlowLayout());
+        panelEstadisticasTop.add(new JLabel("Fecha:"));
+        panelEstadisticasTop.add(fechaExtremos);
+        JButton btnExtremos = new JButton("Mostrar extremos de temperatura en la fecha");
+        panelEstadisticasTop.add(btnExtremos);
+        pnlEstadisticas.add(panelEstadisticasTop, BorderLayout.NORTH);
 
-        JPanel panelCiudadFecha = new JPanel();
-        panelCiudadFecha.add(new JLabel("Ciudad:"));
-        panelCiudadFecha.add(cmbCiudadEstadistica);
-        panelCiudadFecha.add(btnBuscarCiudadFecha);
+        txtResultadoCiudadFecha = new JTextArea();
+        txtResultadoCiudadFecha.setEditable(false);
+        txtResultadoCiudadFecha.setBackground(null);
+        txtResultadoCiudadFecha.setFont(new Font("Arial", Font.PLAIN, 14));
+        txtResultadoCiudadFecha.setWrapStyleWord(true);
+        txtResultadoCiudadFecha.setLineWrap(true);
+        txtResultadoCiudadFecha.setOpaque(false);
+        txtResultadoCiudadFecha.setAlignmentX(Component.CENTER_ALIGNMENT);
+        txtResultadoCiudadFecha.setAlignmentY(Component.CENTER_ALIGNMENT);
+        txtResultadoCiudadFecha.setPreferredSize(new Dimension(500, 100));
 
-        pnlEstadisticas.add(panelCiudadFecha);
-        JPanel pnlResultadoCentro = new JPanel(new BorderLayout());
-        pnlResultadoCentro.add(lblResultadoCiudadFecha, BorderLayout.CENTER);
-        pnlEstadisticas.add(pnlResultadoCentro);
+
+        JPanel pnlResultadoCentro = new JPanel(new GridBagLayout());
+        pnlResultadoCentro.add(txtResultadoCiudadFecha);
+        pnlEstadisticas.add(pnlResultadoCentro, BorderLayout.CENTER);
 
         JTabbedPane tabs = new JTabbedPane();
         tabs.addTab("Gráfica", pnlGrafica);
         tabs.addTab("Estadísticas", new JScrollPane(pnlEstadisticas));
-
-        add(top, BorderLayout.NORTH);
         add(tabs, BorderLayout.CENTER);
 
-        datos = ServicioTemperatura.getDatos(System.getProperty("user.dir") + "/src/datos/Temperaturas.csv");
-        ServicioTemperatura.getCiudades(datos).forEach(cmbCiudadEstadistica::addItem);
+        datos = ServicioTemperatura.getDatos("src/datos/Temperaturas.csv");
 
         btnGraficar.addActionListener((ActionEvent e) -> mostrarGrafica());
-        btnEstadisticas.addActionListener((ActionEvent e) -> mostrarExtremos());
-        btnBuscarCiudadFecha.addActionListener((ActionEvent e) -> mostrarTemperaturaCiudadFecha());
+        btnExtremos.addActionListener((ActionEvent e) -> mostrarTemperaturaCiudadFecha());
     }
 
     private void mostrarGrafica() {
-        LocalDate desde = dccDesde.getSelectedDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-        LocalDate hasta = dccHasta.getSelectedDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        LocalDate desde = fechaDesde.getSelectedDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        LocalDate hasta = fechaHasta.getSelectedDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 
         Map<String, Double> promedio = ServicioTemperatura.promedioPorCiudad(datos, desde, hasta);
 
@@ -103,39 +97,33 @@ public class FrmTemperaturas extends JFrame {
                 false, true, false);
 
         pnlGrafica.removeAll();
+        pnlGrafica.add(panelGraficaTop, BorderLayout.NORTH);
         pnlGrafica.add(new ChartPanel(chart), BorderLayout.CENTER);
         pnlGrafica.revalidate();
     }
 
-    private void mostrarExtremos() {
-        LocalDate fecha = dccEspecifica.getSelectedDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+    private void mostrarTemperaturaCiudadFecha() {
+        LocalDate fecha = fechaExtremos.getSelectedDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
         Map<String, Double> tempFecha = ServicioTemperatura.temperaturasPorFecha(datos, fecha);
+
+        if (tempFecha.isEmpty()) {
+            txtResultadoCiudadFecha.setText("No hay datos disponibles para la fecha: " + fecha);
+            return;
+        }
 
         String ciudadMax = ServicioTemperatura.ciudadMasCalurosa(tempFecha);
         String ciudadMin = ServicioTemperatura.ciudadMenosCalurosa(tempFecha);
+        double tempMax = tempFecha.get(ciudadMax);
+        double tempMin = tempFecha.get(ciudadMin);
 
-        pnlEstadisticas.add(new JLabel("Ciudad más calurosa: " + ciudadMax));
-        pnlEstadisticas.add(new JLabel("Ciudad menos calurosa: " + ciudadMin));
-        pnlEstadisticas.revalidate();
-        pnlEstadisticas.repaint();
-    }
+        StringBuilder sb = new StringBuilder();
+        sb.append("Fecha: ").append(fecha).append("\n");
+        sb.append("Ciudad más calurosa: ").append(ciudadMax)
+                .append(" (").append(String.format("%.2f", tempMax)).append(" °C)\n");
+        sb.append("Ciudad menos calurosa: ").append(ciudadMin)
+                .append(" (").append(String.format("%.2f", tempMin)).append(" °C)");
 
-    private void mostrarTemperaturaCiudadFecha() {
-        String ciudad = (String) cmbCiudadEstadistica.getSelectedItem();
-        LocalDate desde = dccDesde.getSelectedDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-        LocalDate hasta = dccHasta.getSelectedDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-
-        double promedio = datos.stream()
-                .filter(r -> r.getCiudad().equals(ciudad))
-                .filter(r -> !r.getFecha().isBefore(desde) && !r.getFecha().isAfter(hasta))
-                .mapToDouble(RegistroTemperatura::getTemperatura)
-                .average()
-                .orElse(Double.NaN);
-
-        String mensaje = Double.isNaN(promedio)
-                ? "No hay datos para " + ciudad + " entre " + desde + " y " + hasta
-                : "Promedio de " + ciudad + " entre " + desde + " y " + hasta + ": " + String.format("%.2f", promedio) + " °C";
-
-        lblResultadoCiudadFecha.setText(mensaje);
+        String mensaje = sb.toString();
+        txtResultadoCiudadFecha.setText(mensaje);
     }
 }
