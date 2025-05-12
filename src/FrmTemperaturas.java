@@ -125,5 +125,8 @@ public class FrmTemperaturas extends JFrame {
 
         String mensaje = sb.toString();
         txtResultadoCiudadFecha.setText(mensaje);
+        pnlEstadisticas.revalidate();
+        pnlEstadisticas.repaint();
+        
     }
 }
